@@ -29,8 +29,8 @@ export function initPipe({ canvas }) {
     const g = new THREE.Group();
     g.position.copy(stagePts[i]);
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.5, 0.02, 8, 120),
-      new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: 0.8 })
+      new THREE.TorusGeometry(1.0, 0.02, 8, 120),
+      new THREE.MeshBasicMaterial({ color: s.color, transparent: true, opacity: 0.45 })
     );
     const core = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.55, 1),
@@ -52,16 +52,6 @@ export function initPipe({ canvas }) {
     new THREE.PointsMaterial({ color: 0x38f0ff, size: 0.04, transparent: true, opacity: 0.85, depthWrite: false })
   );
   scene.add(packets);
-
-  // expanding pulse rings from the VERIFIER gate
-  const pulses = [0, 0.33, 0.66].map(() => {
-    const m = new THREE.Mesh(
-      new THREE.RingGeometry(1.55, 1.6, 64),
-      new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false })
-    );
-    scene.add(m);
-    return { m, t: Math.random() };
-  });
 
   let camT = 0;
   let camTarget = 0;
@@ -97,7 +87,7 @@ export function initPipe({ canvas }) {
     camera.lookAt(look);
 
     stages.forEach((s, i) => {
-      s.target = i === active ? 1.25 : 1;
+      s.target = i === active ? 1.1 : 1;
       s.scale += (s.target - s.scale) * 0.1;
       s.g.scale.setScalar(s.scale);
       s.core.rotation.y = t * 0.6 + i;
@@ -113,17 +103,6 @@ export function initPipe({ canvas }) {
       pk[i * 3 + 2] = tmp.z;
     }
     pkGeo.attributes.position.needsUpdate = true;
-
-    // pulses from VERIFIER (index 2)
-    const vf = stagePts[2];
-    pulses.forEach((p) => {
-      p.t = (p.t + dt * 0.35) % 1;
-      const k = p.t;
-      p.m.position.copy(vf);
-      p.m.lookAt(camera.position);
-      p.m.scale.setScalar(1 + k * 1.1);
-      p.m.material.opacity = (1 - k) * 0.22;
-    });
 
     renderer.render(scene, camera);
     if (running) raf = requestAnimationFrame(frame);

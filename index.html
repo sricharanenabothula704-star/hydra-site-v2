@@ -195,7 +195,7 @@
       <h2>Try the terminal</h2>
       <p>A working prompt with history and tab-complete. Everything here is simulated text. Type <code>help</code>.</p>
     </div>
-    <div class="term rv" style="max-width:920px">
+    <div class="term rv">
       <div class="term-bar"><i></i><i></i><i></i><span>guest@hydra — site console (simulated)</span></div>
       <div class="term-log" id="termLog" role="log" aria-live="polite"></div>
       <form class="term-row" id="termForm" autocomplete="off">
@@ -247,8 +247,9 @@
       <div class="agent rv" style="--c:#00ff88"><div class="agent-head"><span class="dot-c"></span><h3>PLAN</h3></div><div class="role">strategist · temp 0.3</div><p>Researches the target before anyone fires a packet.</p><ul><li>P0–P3 prioritized attack vectors</li><li>Pivot conditions defined up front</li></ul></div>
       <div class="agent rv" style="--c:#ff8800"><div class="agent-head"><span class="dot-c"></span><h3>AUDITOR</h3></div><div class="role">code reviewer · temp 0.1</div><p>Reads source the way an attacker would.</p><ul><li>Trust-boundary &amp; auth-flow analysis</li><li>Each finding: file, line, reachable path, proof</li></ul></div>
       <div class="agent rv" style="--c:#00cc66"><div class="agent-head"><span class="dot-c"></span><h3>RECON</h3></div><div class="role">surface mapper · subagent</div><p>Fast, passive-first mapping that feeds everyone else.</p><ul><li>Zero packets until passive sources run dry</li><li>Structured handoff report</li></ul></div>
-      <a class="card rv" href="skills.html" style="display:flex;flex-direction:column;justify-content:center;text-decoration:none;border-style:dashed;--c:#b18cff">
-        <h3 style="color:#b18cff">+ 1179 skill modules</h3><p>Playbooks loaded on demand by the agents. Browse the constellation →</p>
+      <a class="card rv" href="skills.html" style="grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;text-decoration:none;border-style:dashed;--c:#b18cff">
+        <div><h3 style="color:#b18cff;margin-bottom:4px">+ 1179 skill modules behind them</h3><p>Playbooks the agents load on demand: attack patterns, payloads, tooling and defenses.</p></div>
+        <span class="btn btn-ghost" style="pointer-events:none">Browse the constellation →</span>
       </a>
     </div>
   </div>
