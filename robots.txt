@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sricharanenabothula704-star.github.io/hydra-site-v2/sitemap.xml

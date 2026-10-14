@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>document.documentElement.classList.add("js")</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HYDRA — The 7-Headed AI Bug Bounty System</title>
+<meta name="description" content="HYDRA is an open-source AI agent system for scoped bug bounty work: 7 agents, 1179 skill modules, one-command setup. Verification before reporting.">
+<meta property="og:title" content="HYDRA — The 7-Headed AI Bug Bounty System">
+<meta property="og:description" content="Seven AI agents that hunt software bugs as a team, with a verification gate before any report. Open source, MIT.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#03060a">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ee6a8' stroke-width='2'><path d='M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z'/></svg>">
+<link rel="stylesheet" href="assets/style.css">
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module" src="assets/app.js"></script>
+</head>
+<body data-scene="core">
+
+<!-- boot overlay: once per session -->
+<div class="boot" id="boot" role="status" aria-live="polite">
+  <div class="boot-box" id="bootLines"></div>
+  <button class="boot-skip" id="bootSkip" type="button">skip ⏎</button>
+</div>
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-in">
+    <a class="logo" href="index.html" aria-label="HYDRA home">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="#2ee6a8" stroke-width="2" aria-hidden="true"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z"/></svg>
+      <span><span class="prompt">&gt;_</span> HYDRA</span>
+    </a>
+    <div class="nav-links">
+      <a href="agents.html">Agents</a>
+      <a href="skills.html">Skills</a>
+      <a href="docs.html">Docs</a>
+      <a href="security.html">Security</a>
+      <a href="roadmap.html">Roadmap</a>
+    </div>
+    <div class="nav-right">
+      <button class="pal-btn" type="button" aria-label="Open command palette">⌘K</button>
+      <a class="btn btn-ghost" href="https://github.com/sricharanenabothula704-star/hydra" target="_blank" rel="noopener" style="padding:8px 12px;font-size:14px">★ Star</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Menu">menu</button>
+  </div>
+</nav>
+
+<!-- command palette -->
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette-box">
+    <input class="palette-input" id="palInput" placeholder="jump to… (type to filter)" aria-label="Filter commands" autocomplete="off">
+    <ul class="palette-list" id="palList" role="listbox"></ul>
+  </div>
+</div>
+
+<!-- full-screen rain (matrix command, Konami) -->
+<canvas class="rain" id="rain" aria-hidden="true"></canvas>
+
+<!-- live readouts -->
+<div class="hud hud-fps" aria-hidden="true">fps <b id="hudFps">--</b></div>
+<div class="hud hud-scene" aria-hidden="true">scene: <b id="hudScene">core</b></div>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero scene" id="hero" style="padding-top:40px">
+  <canvas class="hero-3d" id="hero3d" aria-hidden="true"></canvas>
+  <div class="node-tags" id="nodeTags"></div>
+
+  <div class="fallback-3d">
+    <div class="fallback-ring" aria-hidden="true">
+      <i style="left:50%;top:0;--c:#00cc66"></i><i style="left:90%;top:35%;--c:#ff4444"></i><i style="left:76%;top:90%;--c:#ffaa00"></i>
+      <i style="left:24%;top:90%;--c:#00aaff"></i><i style="left:10%;top:35%;--c:#00ff88"></i><i style="left:50%;top:50%;--c:#ff8800;width:22px;height:22px"></i><i style="left:65%;top:12%;--c:#ff00ff"></i>
+    </div>
+  </div>
+
+  <aside class="agent-panel" id="agentPanel" role="dialog" aria-label="Agent details">
+    <button class="x" type="button" aria-label="Close">×</button>
+    <h3>—</h3>
+    <div class="meta"></div>
+    <p></p>
+  </aside>
+
+  <div class="wrap hero-grid" style="width:100%">
+    <div style="max-width:620px;pointer-events:none">
+      <div class="badge"><span class="pulse"></span> open source · v0.3.0 · MIT</div>
+      <h1 class="title glitch" data-text="HYDRA">HYDRA</h1>
+      <p class="tagline" style="pointer-events:auto">Seven AI agents that hunt software bugs as a team, from first recon scan to a <b>submission-ready report</b>. A verification gate sits in front of every report. You stay in control.</p>
+      <div class="hero-cta" style="pointer-events:auto">
+        <a class="btn btn-primary" href="#terminal">▶ Try the terminal</a>
+        <a class="btn btn-ghost" href="docs.html">Quick start →</a>
+        <a class="btn btn-ghost" href="#pipeline">See the pipeline</a>
+      </div>
+      <div class="cmd" style="pointer-events:auto">
+        <span class="p">$</span>
+        <code id="cmd">git clone https://github.com/sricharanenabothula704-star/hydra.git &amp;&amp; cd hydra &amp;&amp; bash setup.sh</code>
+        <button class="copy-btn" type="button" data-copy="#cmd" aria-label="Copy install command">copy</button>
+      </div>
+      <div class="stat-row" style="pointer-events:auto">
+        <div><b>7</b><span>AI agents</span></div>
+        <div><b>1179</b><span>skill modules</span></div>
+        <div><b>27</b><span>playbooks</span></div>
+        <div><b>35</b><span>automation scripts</span></div>
+      </div>
+      <p style="margin:18px 0 0;font:13px var(--mono);color:var(--faint)">drag the core · click a node · scroll to dive</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIPELINE (scroll-driven 3D) ============ -->
+<section class="pipe-wrap scene" id="pipeline" data-fallback="" style="padding:0">
+  <div class="pipe-stick">
+    <canvas class="pipe-canvas" id="pipe3d" aria-hidden="true"></canvas>
+    <div class="pipe-copy">
+      <span class="kicker">The pipeline</span>
+      <div style="position:relative;min-height:420px">
+        <div class="stop" data-stop="0" style="--c:#00cc66">
+          <div class="n">01 / 04</div>
+          <h3>RECON</h3>
+          <p>Maps the attack surface before anyone sends a packet. Passive sources first: certificate transparency, archives, passive DNS.</p>
+          <ul><li>CDN-shielded hosts tagged, not scanned</li><li>Stops when two phases add under 5% new assets</li></ul>
+        </div>
+        <div class="stop" data-stop="1" style="--c:#ff4444">
+          <div class="n">02 / 04</div>
+          <h3>HUNTER</h3>
+          <p>Probes entry points, runs the scanning pipeline and saves every lead instantly with a hash. Each lead is tagged UNVERIFIED.</p>
+          <ul><li>Scope gate checked before any scan</li><li>Decision table for 403s, WAF blocks and silence</li></ul>
+        </div>
+        <div class="stop" data-stop="2" style="--c:#ffaa00">
+          <div class="n">03 / 04</div>
+          <h3>VERIFIER</h3>
+          <p>Tries to destroy each finding: baseline vs exploit requests, three replays, response diffing, false-positive checks.</p>
+          <ul><li>≥80% VERIFIED · 50–79% PARTIAL · &lt;50% REJECTED</li><li>Rejections are logged with a written reason</li></ul>
+        </div>
+        <div class="stop" data-stop="3" style="--c:#00aaff">
+          <div class="n">04 / 04</div>
+          <h3>REPORTER</h3>
+          <p>Writes a platform-style report: clear title, honest severity, working curl PoC with truncated proof, CWE and CVSS.</p>
+          <ul><li>A human reproduces the bug before submitting</li><li>Impact stated in business terms</li></ul>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:14px">PLAN · AUDITOR · DEBUG support every stage: research, code review and self-correction.</p>
+    </div>
+    <div class="pipe-dots" role="group" aria-label="Pipeline stages">
+      <button type="button" aria-label="RECON"></button>
+      <button type="button" aria-label="HUNTER"></button>
+      <button type="button" aria-label="VERIFIER"></button>
+      <button type="button" aria-label="REPORTER"></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ATTACK-SURFACE SIMULATION ============ -->
+<section id="surface" class="alt">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Simulation</span>
+      <h2 data-decrypt="Attack surface, simulated">Attack surface, simulated</h2>
+      <p>A made-up target and a scope gate. The globe shows how the simulated recon treats in-scope, out-of-scope and CDN-shielded hosts. <b>No requests are sent anywhere.</b></p>
+    </div>
+    <div class="two-col">
+      <div class="scene-frame scene rv" data-fallback="3D globe needs WebGL. the scan log still runs on the right.">
+        <canvas class="map-canvas" id="map3d" aria-hidden="true"></canvas>
+        <span class="scene-tag">SIMULATION · example.* hosts only</span>
+        <div class="scene-ctrl">
+          <button class="btn-sm" id="mapScan" type="button">▶ scan</button>
+          <button class="btn-sm" id="mapReset" type="button">reset</button>
+        </div>
+      </div>
+      <div class="rv" style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <div class="card" aria-label="Simulated targets">
+          <h3 style="font-size:15px;font-family:var(--mono);color:var(--mute)">targets · allowlist: *.example.test</h3>
+          <div class="target-row" data-host="app.example.test"><span>app.example.test</span><em class="dim">queued</em></div>
+          <div class="target-row" data-host="api.example.test"><span>api.example.test</span><em class="dim">queued</em></div>
+          <div class="target-row" data-host="cdn.example.test"><span>cdn.example.test</span><em class="dim">queued</em></div>
+          <div class="target-row" data-host="legacy.example.test"><span>legacy.example.test</span><em class="dim">queued</em></div>
+          <div class="target-row" data-host="partner.example.org"><span>partner.example.org</span><em class="dim">queued</em></div>
+          <div class="target-row" data-host="mail.example.net"><span>mail.example.net</span><em class="dim">queued</em></div>
+        </div>
+        <div class="log" id="mapLog" role="log" aria-live="polite" aria-label="Simulation log" style="min-height:260px;max-height:300px">
+          <div class="dim placeholder">press ▶ scan to run the simulated recon.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TERMINAL ============ -->
+<section id="terminal">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Console</span>
+      <h2>Try the terminal</h2>
+      <p>A working prompt with history and tab-complete. Everything here is simulated text. Type <code>help</code>.</p>
+    </div>
+    <div class="term rv" style="max-width:920px">
+      <div class="term-bar"><i></i><i></i><i></i><span>guest@hydra — site console (simulated)</span></div>
+      <div class="term-log" id="termLog" role="log" aria-live="polite"></div>
+      <form class="term-row" id="termForm" autocomplete="off">
+        <span class="p">hydra&gt;</span>
+        <input id="termInput" type="text" aria-label="Command" spellcheck="false" autocapitalize="off" placeholder="help · agents · hunt app.example.test · matrix">
+      </form>
+    </div>
+    <div class="chips" style="margin-top:14px">
+      <button class="chip" type="button" data-run="help">help</button>
+      <button class="chip" type="button" data-run="agents">agents</button>
+      <button class="chip" type="button" data-run="scope">scope</button>
+      <button class="chip" type="button" data-run="hunt app.example.test">hunt app.example.test</button>
+      <button class="chip" type="button" data-run="hunt google.com">hunt google.com (denied)</button>
+      <button class="chip" type="button" data-run="matrix">matrix</button>
+    </div>
+    <p class="hint">↑/↓ history · tab completes · the demo scope is *.example.test. Real scans run only in your own terminal, after you set the allowlist.</p>
+  </div>
+</section>
+
+<!-- ============ VERIFIER GATE ============ -->
+<section id="gate" class="alt">
+  <div class="wrap two-col" style="align-items:center">
+    <div class="rv">
+      <span class="kicker">Quality gate</span>
+      <h2 class="sec-head" style="margin:0 0 14px;font-size:clamp(28px,4vw,40px)">The Verifier decides what survives</h2>
+      <p style="color:var(--mute);font-size:17px;margin:0 0 18px">Move the slider. Thresholds match the live pipeline: at or above 80% a lead is VERIFIED and moves to the Reporter; 50–79% goes to a human; below 50% is rejected with a reason.</p>
+      <p style="color:var(--faint);font:13px var(--mono);margin:0">Scores are heuristic. Reproduce every lead yourself before you report it.</p>
+    </div>
+    <div class="card rv" style="padding:26px">
+      <label for="gate" style="display:flex;justify-content:space-between;font:13px var(--mono);color:var(--mute);margin-bottom:12px">confidence <span id="gateVal">74%</span></label>
+      <input id="gate" type="range" min="0" max="100" value="74" style="width:100%;accent-color:#2ee6a8">
+      <div class="gate-out" id="gateOut" aria-live="polite" style="margin-top:18px;font:14px var(--mono)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AGENTS ============ -->
+<section id="agents">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">The seven heads</span>
+      <h2>Meet the agents</h2>
+      <p>Each agent ships with mission context, decision frameworks and strict output contracts. <a href="agents.html">Full deep-dive →</a></p>
+    </div>
+    <div class="grid-3">
+      <div class="agent rv" style="--c:#ff4444"><div class="agent-head"><span class="dot-c"></span><h3>HUNTER</h3></div><div class="role">exploitation lead · temp 0.2</div><p>Runs the full scanning pipeline and the probing cycles.</p><ul><li>CDN/WAF filtering before any scan</li><li>Every lead hashed &amp; saved instantly</li></ul></div>
+      <div class="agent rv" style="--c:#ffaa00"><div class="agent-head"><span class="dot-c"></span><h3>VERIFIER</h3></div><div class="role">quality gate · temp 0.1</div><p>The last line between you and a rejected report.</p><ul><li>3-request reproducibility rule</li><li>Baseline-vs-exploit diffing</li></ul></div>
+      <div class="agent rv" style="--c:#00aaff"><div class="agent-head"><span class="dot-c"></span><h3>REPORTER</h3></div><div class="role">submission writer · temp 0.1</div><p>Writes reports a triager can confirm in five minutes.</p><ul><li>Working curl PoCs, truncated proof</li><li>CWE mapping &amp; CVSS vectors</li></ul></div>
+      <div class="agent rv" style="--c:#00ff88"><div class="agent-head"><span class="dot-c"></span><h3>PLAN</h3></div><div class="role">strategist · temp 0.3</div><p>Researches the target before anyone fires a packet.</p><ul><li>P0–P3 prioritized attack vectors</li><li>Pivot conditions defined up front</li></ul></div>
+      <div class="agent rv" style="--c:#ff8800"><div class="agent-head"><span class="dot-c"></span><h3>AUDITOR</h3></div><div class="role">code reviewer · temp 0.1</div><p>Reads source the way an attacker would.</p><ul><li>Trust-boundary &amp; auth-flow analysis</li><li>Each finding: file, line, reachable path, proof</li></ul></div>
+      <div class="agent rv" style="--c:#00cc66"><div class="agent-head"><span class="dot-c"></span><h3>RECON</h3></div><div class="role">surface mapper · subagent</div><p>Fast, passive-first mapping that feeds everyone else.</p><ul><li>Zero packets until passive sources run dry</li><li>Structured handoff report</li></ul></div>
+      <a class="card rv" href="skills.html" style="display:flex;flex-direction:column;justify-content:center;text-decoration:none;border-style:dashed;--c:#b18cff">
+        <h3 style="color:#b18cff">+ 1179 skill modules</h3><p>Playbooks loaded on demand by the agents. Browse the constellation →</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="alt">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">v0.3.0</span>
+      <h2>Shipped capabilities</h2>
+      <p>What exists today. Planned work is on the <a href="roadmap.html">roadmap</a>.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card rv"><h3>♾️ Loop mode</h3><p>Continuous loop via <code>./scripts/hydra_loop.sh targets.txt 40</code>. Each target is checked against your allowlist before a cycle starts.</p></div>
+      <div class="card rv"><h3>🛡️ Scope policy</h3><p>The CLI and loop runner check supported commands against <code>SCOPE_ALLOWLIST.txt</code>. Standalone helper scripts may not enforce it.</p></div>
+      <div class="card rv"><h3>🎯 Real commands</h3><p><code>hydra doctor</code> for preflight, <code>hydra scan URL</code> for a scoped HTTP-header audit, <code>hydra hunt URL</code> to invoke the configured hunter.</p></div>
+      <div class="card rv"><h3>🧠 23 providers</h3><p>Credentials checked for 23 environment-key providers. OpenCode-managed providers connect with <code>/connect</code> and select with <code>/models</code>.</p></div>
+      <div class="card rv"><h3>⚡ Guided setup</h3><p><code>bash setup.sh --handle YOU --email you@example.com</code>. Backs up existing config and asks before installing OpenCode.</p></div>
+      <div class="card rv"><h3>🧭 Skill router</h3><p><code>hydra skills route --task "…"</code> ranks index metadata to choose playbooks. Agents still read and apply the returned files.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INSTALL ============ -->
+<section id="start">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Get started</span>
+      <h2>Two ways to install</h2>
+      <p>Use the terminal setup, or let an AI coding agent guide the setup from the repository. Full steps in the <a href="docs.html">docs</a>.</p>
+    </div>
+    <div class="grid-2 rv" style="margin-bottom:28px">
+      <div class="card"><h3>1 · Terminal setup</h3><p>Clone and run <code>bash setup.sh --handle YOUR_HANDLE --email you@example.com</code>. An existing OpenCode config is backed up and replaced only after you approve.</p></div>
+      <div class="card"><h3>2 · AI setup prompt</h3><p>With OpenCode installed, open the repo as your workspace and paste the <a href="https://github.com/sricharanenabothula704-star/hydra/blob/main/docs/AI_SETUP_PROMPT.md" target="_blank" rel="noopener">AI setup prompt</a>. It explains the plan, backs up config, and runs setup after your approval. It does not launch a scan.</p></div>
+    </div>
+    <div class="steps">
+      <div class="step rv"><h3>Pick a model provider</h3><p>Launch OpenCode, use <code>/connect</code> to authenticate, then <code>/models</code> to select one. Cloud providers receive the prompts you send them. A local Ollama setup keeps prompts on your machine.</p></div>
+      <div class="step rv"><h3>Confirm your authorization</h3><p>Only test assets you own or have written authorization to assess. Add exact domains to <code>~/.config/opencode/SCOPE_ALLOWLIST.txt</code>. The CLI and loop runner deny anything outside it.</p></div>
+      <div class="step rv"><h3>Hunt</h3><p>Launch <code>opencode</code> and use guarded CLI or loop commands. Direct agent commands and standalone scripts need your own scope review.</p></div>
+      <div class="step rv"><h3>Verify, then report</h3><p>Feed leads to <code>/verify</code>. Survivors go to <code>/report</code>, which drafts a writeup with reproducible PoCs. You review every claim before submitting.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPARISON ============ -->
+<section class="alt" id="compare">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Honest comparison</span>
+      <h2>Manual hunting · a chatbot · HYDRA</h2>
+      <p>Same target, three approaches. Where each one actually stands.</p>
+    </div>
+    <div class="table-scroll rv">
+      <table class="cmp">
+        <tr><th style="width:30%"></th><th>Manual hunting</th><th>A chatbot alone</th><th class="hydra-col">🐉 HYDRA</th></tr>
+        <tr><td>Recon coverage</td><td class="mid">Thorough but manual</td><td class="no">Advice only; no tool execution</td><td class="hydra-col yes">Wrappers for configured tools; coverage varies</td></tr>
+        <tr><td>False-positive control</td><td class="mid">Depends on your review process</td><td class="no">May state guesses as facts</td><td class="hydra-col yes">Verifier heuristics; human reproduction still required</td></tr>
+        <tr><td>Report quality</td><td class="yes">Depends on the writer</td><td class="mid">May omit reproducible evidence</td><td class="hydra-col yes">Drafts platform-style reports; you review every claim</td></tr>
+        <tr><td>Memory between sessions</td><td class="yes">Your notebook</td><td class="no">Forgets everything</td><td class="hydra-col yes">Per-agent memory files persist</td></tr>
+        <tr><td>Runs your real tools?</td><td class="yes">Yes, you drive them</td><td class="no">No execution</td><td class="hydra-col yes">Executes configured scanners and reads outputs</td></tr>
+        <tr><td>Judgment &amp; creativity</td><td class="yes">You</td><td class="mid">Generic advice</td><td class="mid">Frameworks plus your direction</td></tr>
+      </table>
+    </div>
+    <p class="hint">Honest row: judgment stays yours. HYDRA removes the grind around it.</p>
+  </div>
+</section>
+
+<!-- ============ LIMITS ============ -->
+<section id="limits">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">Evidence and limits</span>
+      <h2>What is checked, and what is not</h2>
+    </div>
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="card rv"><h3>Automated checks</h3><p>CI runs Python compilation, index consistency, unit tests, scope-policy tests, frontmatter checks and a secret-pattern scan. These show basic integrity, not that every skill is correct.</p></div>
+      <div class="card rv"><h3>Scope boundary</h3><p>The CLI and loop runner gate supported commands against a local allowlist. Prompt instructions are not enforcement. Inspect standalone scripts before use.</p></div>
+      <div class="card rv"><h3>Known limitations</h3><p>No benchmark yet establishes precision or recall. Oracle checks are heuristics and may miss bugs or produce false positives.</p></div>
+    </div>
+    <div class="callout rv">
+      <div class="sym">!</div>
+      <div>
+        <h3>Do not run the coordination server as shipped</h3>
+        <p>The optional coordination server binds to <code>0.0.0.0:5000</code> without authentication and serves submitted findings over HTTP. Keep it off, or bind it to localhost behind your own auth. The build agent also has shell and edit permissions. See <a href="security.html">Security &amp; limits</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="alt" id="faq">
+  <div class="wrap" style="max-width:860px">
+    <div class="sec-head rv"><span class="kicker">FAQ</span><h2>Questions people actually ask</h2></div>
+    <div class="faq">
+      <details class="rv"><summary>Is this legal to use?</summary><div class="a">Use it only on systems you own or have written authorization to test. The CLI and loop runner enforce the allowlist for their guarded commands. Standalone scripts may not, so inspect them and confirm scope before running anything that sends traffic.</div></details>
+      <details class="rv"><summary>Will it find bugs fully automatically while I sleep?</summary><div class="a">No. HYDRA automates recon, pattern matching, verification drudgery and report drafting. Choosing targets, reading business logic and deciding what is worth pursuing stays with you. Think of it as a fast junior team you direct.</div></details>
+      <details class="rv"><summary>Do I need paid API keys?</summary><div class="a">You need an AI model provider for model-backed workflows. Some offer free tiers, and a local Ollama setup keeps prompts on your machine. Cloud providers receive the prompts sent to them. Review provider terms and scripts before use.</div></details>
+      <details class="rv"><summary>What makes this different from ChatGPT?</summary><div class="a">A chatbot gives advice. HYDRA runs configured tools, keeps per-agent memory, applies a verification gate and drafts reports in platform format. It is a workflow with guards, not a chat window.</div></details>
+      <details class="rv"><summary>Can it break my computer or leak my data?</summary><div class="a">Findings are stored locally by default, which is not a guarantee that nothing leaves your machine. Do not run the coordination server as shipped (unauthenticated, 0.0.0.0:5000). Review scripts, permissions and provider data handling first.</div></details>
+      <details class="rv"><summary>What if an agent gets stuck or hallucinates?</summary><div class="a">Agents can get stuck or make mistakes. Treat every result as a candidate. Reproduce it independently, inspect the raw evidence, and review the report before anything is submitted.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ROADMAP ============ -->
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="kicker">Upcoming</span><h2>The road ahead</h2><p>Planned improvements and technical debt. Full list on the <a href="roadmap.html">roadmap page</a>.</p></div>
+    <div class="roadmap">
+      <div class="ritem rv"><span class="tag now">DONE</span><div><b>Task-based skill routing</b><p>Routes each task to mandatory safety baselines plus up to five topic-matched skills from the 1179-module library.</p></div></div>
+      <div class="ritem rv"><span class="tag next">NEXT</span><div><b>Evaluation suite</b><p>Deliberately vulnerable test apps to measure how often Hunter findings survive the Verifier.</p></div></div>
+      <div class="ritem rv"><span class="tag next">NEXT</span><div><b>Capability tiers</b><p>Runtime-enforced PASSIVE, SAFE_ACTIVE and INTRUSIVE levels, beyond prompt-only guidance.</p></div></div>
+      <div class="ritem rv"><span class="tag later">LATER</span><div><b>HYDRA runtime</b><p>Own agent runtime beyond the opencode engine, with a typed agent protocol and native sandboxing.</p></div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-cols">
+      <div>
+        <a class="logo" href="index.html"><span class="prompt">&gt;_</span> HYDRA</a>
+        <p>The 7-headed AI bug bounty system. Open source under MIT. Test only what you are authorized to test.</p>
+      </div>
+      <div class="fcol"><h4>PRODUCT</h4><a href="agents.html">Agents</a><a href="skills.html">Skill library</a><a href="docs.html">Docs</a><a href="roadmap.html">Roadmap</a></div>
+      <div class="fcol"><h4>RESOURCES</h4><a href="https://github.com/sricharanenabothula704-star/hydra">GitHub</a><a href="https://github.com/sricharanenabothula704-star/hydra/releases">Releases</a><a href="https://github.com/sricharanenabothula704-star/hydra/issues">Issues</a></div>
+      <div class="fcol"><h4>TRUST</h4><a href="security.html">Security &amp; limits</a><a href="https://github.com/sricharanenabothula704-star/hydra/blob/main/LICENSE">MIT License</a><a href="https://github.com/sricharanenabothula704-star/hydra/blob/main/DISCLAIMER.md">Disclaimer</a></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="yr">2026</span> sricharanenabothula704-star · hunt ethically</span>
+      <span style="font-family:var(--mono)">seven heads. one hunt. ⌘K for everything</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

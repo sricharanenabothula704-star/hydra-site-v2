@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>document.documentElement.classList.add("js")</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security &amp; limits · HYDRA</title>
+<meta name="description" content="HYDRA's responsible-use rules, scope boundary, data handling, known limitations and security-reporting path.">
+<meta name="theme-color" content="#03060a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ee6a8' stroke-width='2'><path d='M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z'/></svg>">
+<link rel="stylesheet" href="assets/style.css">
+<script type="module" src="assets/app.js"></script>
+</head>
+<body data-scene="security">
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-in">
+    <a class="logo" href="index.html"><span class="prompt">&gt;_</span> HYDRA</a>
+    <div class="nav-links">
+      <a href="agents.html">Agents</a>
+      <a href="skills.html">Skills</a>
+      <a href="docs.html">Docs</a>
+      <a href="security.html" aria-current="page">Security</a>
+      <a href="roadmap.html">Roadmap</a>
+    </div>
+    <div class="nav-right"><button class="pal-btn" type="button" aria-label="Open command palette">⌘K</button></div>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Menu">menu</button>
+  </div>
+</nav>
+
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette-box">
+    <input class="palette-input" id="palInput" placeholder="jump to… (type to filter)" aria-label="Filter commands" autocomplete="off">
+    <ul class="palette-list" id="palList" role="listbox"></ul>
+  </div>
+</div>
+<canvas class="rain" id="rain" aria-hidden="true"></canvas>
+<div class="hud hud-fps" aria-hidden="true">fps <b id="hudFps">--</b></div>
+
+<main>
+<section class="page-hero">
+  <div class="wrap">
+    <span class="kicker">Trust</span>
+    <h1>Security &amp; limits</h1>
+    <p>What HYDRA enforces, what it only suggests, and what you still have to check yourself.</p>
+  </div>
+</section>
+
+<section style="padding-top:20px">
+  <div class="wrap">
+    <div class="grid-2">
+      <div class="card rv"><h3>Use it only where you are authorized</h3><p>Test only systems you own or have written authorization to assess. Agent instructions require a scope review. The CLI and loop runner enforce the allowlist for their guarded commands.</p></div>
+      <div class="card rv"><h3>Scope enforcement has edges</h3><p>Standalone helper scripts may not enforce the allowlist. Prompt instructions are not enforcement. Read a script before you run it, and confirm scope before any traffic is sent.</p></div>
+      <div class="card rv"><h3>Your data and providers</h3><p>Findings are stored locally by default. That is not a guarantee nothing leaves your machine. Cloud model providers receive the prompts you send. Configured tools may contact their targets or other services. Review provider terms, privacy settings and scripts.</p></div>
+      <div class="card rv"><h3>Results are candidates</h3><p>The Verifier is heuristic. Oracle checks may miss bugs or produce false positives. There is no benchmark yet for precision or recall. Human reproduction is required before any report or action.</p></div>
+    </div>
+
+    <div class="callout rv" style="margin-top:20px">
+      <div class="sym">!</div>
+      <div>
+        <h3>The coordination server is not hardened</h3>
+        <p>The optional coordination server binds to <code>0.0.0.0:5000</code> with no authentication and serves submitted findings over HTTP. Do not run it as shipped. Keep it on localhost or put it behind your own authentication and network controls.</p>
+        <p>The build agent also has shell and edit permissions in the shipped config. Review the permissions in the <code>opencode.jsonc.template</code> before you run it on anything you care about.</p>
+      </div>
+    </div>
+
+    <h2 style="margin:40px 0 12px;font-size:24px">Reporting a vulnerability in HYDRA</h2>
+    <p style="color:var(--mute);max-width:760px">Please report security issues in HYDRA itself privately, not in a public issue. Follow the repo's <a href="https://github.com/sricharanenabothula704-star/hydra/blob/main/SECURITY.md">SECURITY.md</a>. Do not include working exploits for third-party systems in reports.</p>
+
+    <h2 style="margin:40px 0 12px;font-size:24px">Responsible use</h2>
+    <p style="color:var(--mute);max-width:760px">HYDRA is for authorized security testing, defensive work and learning. Read the <a href="https://github.com/sricharanenabothula704-star/hydra/blob/main/DISCLAIMER.md">disclaimer</a> and the bug bounty program's rules before you test anything. This site has no live connection to any target: the console and globe on the homepage are simulations.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-bottom" style="margin-top:0;border-top:0;padding-top:0">
+      <span>🐉 HYDRA · built by <a href="https://github.com/sricharanenabothula704-star" target="_blank" rel="noopener">@sricharanenabothula704-star</a></span>
+      <span><a href="index.html">Home</a> · <a href="docs.html">Docs</a></span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
