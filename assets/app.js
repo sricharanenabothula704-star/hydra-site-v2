@@ -231,7 +231,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 // ---------- verifier gate ----------
-const gate = $('#gate');
+const gate = $('#gateRange');
 const gateOut = $('#gateOut');
 function renderGate() {
   if (!gate || !gateOut) return;
