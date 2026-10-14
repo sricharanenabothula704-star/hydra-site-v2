@@ -11,6 +11,15 @@
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#03060a">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://sricharanenabothula704-star.github.io/hydra-site-v2/">
+<meta property="og:url" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/">
+<meta property="og:site_name" content="HYDRA">
+<meta property="og:image" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/og.png">
+<meta property="og:image:alt" content="HYDRA: 7 AI agents for scoped bug bounty work">
+<meta name="twitter:title" content="HYDRA — The 7-Headed AI Bug Bounty System">
+<meta name="twitter:description" content="HYDRA is an open-source AI agent system for scoped bug bounty work: 7 agents, 1179 skill modules, one-command setup. Verification before reporting.">
+<meta name="twitter:image" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/og.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "SoftwareApplication", "name": "HYDRA", "description": "HYDRA is an open-source AI agent system for scoped bug bounty work: 7 agents, 1179 skill modules, one-command setup. Verification before reporting.", "url": "https://sricharanenabothula704-star.github.io/hydra-site-v2/", "codeRepository": "https://github.com/sricharanenabothula704-star/hydra", "license": "https://opensource.org/licenses/MIT", "applicationCategory": "SecurityApplication", "author": {"@type": "Person", "name": "sricharanenabothula704-star"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this legal to use?", "acceptedAnswer": {"@type": "Answer", "text": "Use it only on systems you own or have written authorization to test. The CLI and loop runner enforce the allowlist for their guarded commands. Standalone scripts may not, so inspect them and confirm scope before running anything that sends traffic."}}, {"@type": "Question", "name": "Will it find bugs fully automatically while I sleep?", "acceptedAnswer": {"@type": "Answer", "text": "No. HYDRA automates recon, pattern matching, verification drudgery and report drafting. Choosing targets, reading business logic and deciding what is worth pursuing stays with you. Think of it as a fast junior team you direct."}}, {"@type": "Question", "name": "Do I need paid API keys?", "acceptedAnswer": {"@type": "Answer", "text": "You need an AI model provider for model-backed workflows. Some offer free tiers, and a local Ollama setup keeps prompts on your machine. Cloud providers receive the prompts sent to them. Review provider terms and scripts before use."}}, {"@type": "Question", "name": "What makes this different from ChatGPT?", "acceptedAnswer": {"@type": "Answer", "text": "A chatbot gives advice. HYDRA runs configured tools, keeps per-agent memory, applies a verification gate and drafts reports in platform format. It is a workflow with guards, not a chat window."}}, {"@type": "Question", "name": "Can it break my computer or leak my data?", "acceptedAnswer": {"@type": "Answer", "text": "Findings are stored locally by default, which is not a guarantee that nothing leaves your machine. Do not run the coordination server as shipped (unauthenticated, 0.0.0.0:5000). Review scripts, permissions and provider data handling first."}}, {"@type": "Question", "name": "What if an agent gets stuck or hallucinates?", "acceptedAnswer": {"@type": "Answer", "text": "Agents can get stuck or make mistakes. Treat every result as a candidate. Reproduce it independently, inspect the raw evidence, and review the report before anything is submitted."}}]}]}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ee6a8' stroke-width='2'><path d='M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z'/></svg>">
 <link rel="stylesheet" href="assets/style.css">
 <script type="importmap">
@@ -19,6 +28,7 @@
 <script type="module" src="assets/app.js"></script>
 </head>
 <body data-scene="core">
+<a class="skip" href="#main">Skip to content</a>
 
 <!-- boot overlay: once per session -->
 <div class="boot" id="boot" role="status" aria-live="polite">
@@ -26,7 +36,7 @@
   <button class="boot-skip" id="bootSkip" type="button">skip ⏎</button>
 </div>
 
-<nav class="nav" aria-label="Main">
+<header class="site-header"><nav class="nav" aria-label="Main">
   <div class="nav-in">
     <a class="logo" href="index.html" aria-label="HYDRA home">
       <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="#2ee6a8" stroke-width="2" aria-hidden="true"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z"/></svg>
@@ -45,7 +55,7 @@
     </div>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Menu">menu</button>
   </div>
-</nav>
+</nav></header>
 
 <!-- command palette -->
 <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
@@ -58,11 +68,8 @@
 <!-- full-screen rain (matrix command, Konami) -->
 <canvas class="rain" id="rain" aria-hidden="true"></canvas>
 
-<!-- live readouts -->
-<div class="hud hud-fps" aria-hidden="true">fps <b id="hudFps">--</b></div>
-<div class="hud hud-scene" aria-hidden="true">scene: <b id="hudScene">core</b></div>
 
-<main>
+<main id="main">
 
 <!-- ============ HERO ============ -->
 <section class="hero scene" id="hero" style="padding-top:40px">
@@ -115,30 +122,31 @@
     <canvas class="pipe-canvas" id="pipe3d" aria-hidden="true"></canvas>
     <div class="pipe-copy">
       <span class="kicker">The pipeline</span>
+      <h2 class="visually-hidden">The four pipeline stages</h2>
       <div style="position:relative;min-height:420px">
         <div class="stop" data-stop="0" style="--c:#00cc66">
           <div class="n">01 / 04</div>
           <h3>RECON</h3>
           <p>Maps the attack surface before anyone sends a packet. Passive sources first: certificate transparency, archives, passive DNS.</p>
-          <ul><li>CDN-shielded hosts tagged, not scanned</li><li>Stops when two phases add under 5% new assets</li></ul>
+          <ul role="list"><li>CDN-shielded hosts tagged, not scanned</li><li>Stops when two phases add under 5% new assets</li></ul>
         </div>
         <div class="stop" data-stop="1" style="--c:#ff4444">
           <div class="n">02 / 04</div>
           <h3>HUNTER</h3>
           <p>Probes entry points, runs the scanning pipeline and saves every lead instantly with a hash. Each lead is tagged UNVERIFIED.</p>
-          <ul><li>Scope gate checked before any scan</li><li>Decision table for 403s, WAF blocks and silence</li></ul>
+          <ul role="list"><li>Scope gate checked before any scan</li><li>Decision table for 403s, WAF blocks and silence</li></ul>
         </div>
         <div class="stop" data-stop="2" style="--c:#ffaa00">
           <div class="n">03 / 04</div>
           <h3>VERIFIER</h3>
           <p>Tries to destroy each finding: baseline vs exploit requests, three replays, response diffing, false-positive checks.</p>
-          <ul><li>≥80% VERIFIED · 50–79% PARTIAL · &lt;50% REJECTED</li><li>Rejections are logged with a written reason</li></ul>
+          <ul role="list"><li>≥80% VERIFIED · 50–79% PARTIAL · &lt;50% REJECTED</li><li>Rejections are logged with a written reason</li></ul>
         </div>
         <div class="stop" data-stop="3" style="--c:#00aaff">
           <div class="n">04 / 04</div>
           <h3>REPORTER</h3>
           <p>Writes a platform-style report: clear title, honest severity, working curl PoC with truncated proof, CWE and CVSS.</p>
-          <ul><li>A human reproduces the bug before submitting</li><li>Impact stated in business terms</li></ul>
+          <ul role="list"><li>A human reproduces the bug before submitting</li><li>Impact stated in business terms</li></ul>
         </div>
       </div>
       <p class="hint" style="margin-top:14px">PLAN · AUDITOR · DEBUG support every stage: research, code review and self-correction.</p>
@@ -198,7 +206,7 @@
     <div class="term rv">
       <div class="term-bar"><i></i><i></i><i></i><span>guest@hydra — site console (simulated)</span></div>
       <div class="term-log" id="termLog" role="log" aria-live="polite"></div>
-      <form class="term-row" id="termForm" autocomplete="off">
+      <form class="term-row" id="termForm" action="#" method="get" autocomplete="off">
         <span class="p">hydra&gt;</span>
         <input id="termInput" type="text" aria-label="Command" spellcheck="false" autocapitalize="off" placeholder="help · agents · hunt app.example.test · matrix">
       </form>
@@ -241,12 +249,12 @@
       <p>Each agent ships with mission context, decision frameworks and strict output contracts. <a href="agents.html">Full deep-dive →</a></p>
     </div>
     <div class="grid-3">
-      <div class="agent rv" style="--c:#ff4444"><div class="agent-head"><span class="dot-c"></span><h3>HUNTER</h3></div><div class="role">exploitation lead · temp 0.2</div><p>Runs the full scanning pipeline and the probing cycles.</p><ul><li>CDN/WAF filtering before any scan</li><li>Every lead hashed &amp; saved instantly</li></ul></div>
-      <div class="agent rv" style="--c:#ffaa00"><div class="agent-head"><span class="dot-c"></span><h3>VERIFIER</h3></div><div class="role">quality gate · temp 0.1</div><p>The last line between you and a rejected report.</p><ul><li>3-request reproducibility rule</li><li>Baseline-vs-exploit diffing</li></ul></div>
-      <div class="agent rv" style="--c:#00aaff"><div class="agent-head"><span class="dot-c"></span><h3>REPORTER</h3></div><div class="role">submission writer · temp 0.1</div><p>Writes reports a triager can confirm in five minutes.</p><ul><li>Working curl PoCs, truncated proof</li><li>CWE mapping &amp; CVSS vectors</li></ul></div>
-      <div class="agent rv" style="--c:#00ff88"><div class="agent-head"><span class="dot-c"></span><h3>PLAN</h3></div><div class="role">strategist · temp 0.3</div><p>Researches the target before anyone fires a packet.</p><ul><li>P0–P3 prioritized attack vectors</li><li>Pivot conditions defined up front</li></ul></div>
-      <div class="agent rv" style="--c:#ff8800"><div class="agent-head"><span class="dot-c"></span><h3>AUDITOR</h3></div><div class="role">code reviewer · temp 0.1</div><p>Reads source the way an attacker would.</p><ul><li>Trust-boundary &amp; auth-flow analysis</li><li>Each finding: file, line, reachable path, proof</li></ul></div>
-      <div class="agent rv" style="--c:#00cc66"><div class="agent-head"><span class="dot-c"></span><h3>RECON</h3></div><div class="role">surface mapper · subagent</div><p>Fast, passive-first mapping that feeds everyone else.</p><ul><li>Zero packets until passive sources run dry</li><li>Structured handoff report</li></ul></div>
+      <div class="agent rv" style="--c:#ff4444"><div class="agent-head"><span class="dot-c"></span><h3>HUNTER</h3></div><div class="role">exploitation lead · temp 0.2</div><p>Runs the full scanning pipeline and the probing cycles.</p><ul role="list"><li>CDN/WAF filtering before any scan</li><li>Every lead hashed &amp; saved instantly</li></ul></div>
+      <div class="agent rv" style="--c:#ffaa00"><div class="agent-head"><span class="dot-c"></span><h3>VERIFIER</h3></div><div class="role">quality gate · temp 0.1</div><p>The last line between you and a rejected report.</p><ul role="list"><li>3-request reproducibility rule</li><li>Baseline-vs-exploit diffing</li></ul></div>
+      <div class="agent rv" style="--c:#00aaff"><div class="agent-head"><span class="dot-c"></span><h3>REPORTER</h3></div><div class="role">submission writer · temp 0.1</div><p>Writes reports a triager can confirm in five minutes.</p><ul role="list"><li>Working curl PoCs, truncated proof</li><li>CWE mapping &amp; CVSS vectors</li></ul></div>
+      <div class="agent rv" style="--c:#00ff88"><div class="agent-head"><span class="dot-c"></span><h3>PLAN</h3></div><div class="role">strategist · temp 0.3</div><p>Researches the target before anyone fires a packet.</p><ul role="list"><li>P0–P3 prioritized attack vectors</li><li>Pivot conditions defined up front</li></ul></div>
+      <div class="agent rv" style="--c:#ff8800"><div class="agent-head"><span class="dot-c"></span><h3>AUDITOR</h3></div><div class="role">code reviewer · temp 0.1</div><p>Reads source the way an attacker would.</p><ul role="list"><li>Trust-boundary &amp; auth-flow analysis</li><li>Each finding: file, line, reachable path, proof</li></ul></div>
+      <div class="agent rv" style="--c:#00cc66"><div class="agent-head"><span class="dot-c"></span><h3>RECON</h3></div><div class="role">surface mapper · subagent</div><p>Fast, passive-first mapping that feeds everyone else.</p><ul role="list"><li>Zero packets until passive sources run dry</li><li>Structured handoff report</li></ul></div>
       <a class="card rv" href="skills.html" style="grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;text-decoration:none;border-style:dashed;--c:#b18cff">
         <div><h3 style="color:#b18cff;margin-bottom:4px">+ 1179 skill modules behind them</h3><p>Playbooks the agents load on demand: attack patterns, payloads, tooling and defenses.</p></div>
         <span class="btn btn-ghost" style="pointer-events:none">Browse the constellation →</span>

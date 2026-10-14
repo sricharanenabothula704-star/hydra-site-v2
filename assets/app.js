@@ -7,7 +7,6 @@ import { initTerminal, startRain } from './terminal.js';
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 function hasWebGL() {
   try {
@@ -265,6 +264,8 @@ function setStop(i) {
   dots.forEach((d, j) => d.setAttribute('aria-current', String(j === i)));
   pipeCtl && pipeCtl.setActive(i);
 }
+// The pinned, scroll-driven pipeline only exists on wide screens. Narrow screens stack all four stages.
+const PINNED = () => window.matchMedia('(min-width: 981px)').matches;
 function pipeProgress() {
   if (!pipeWrap) return 0;
   const rect = pipeWrap.getBoundingClientRect();
@@ -274,7 +275,7 @@ function pipeProgress() {
 }
 let ticking = false;
 function onPipeScroll() {
-  if (ticking || !pipeWrap) return;
+  if (ticking || !pipeWrap || !PINNED()) return;
   ticking = true;
   requestAnimationFrame(() => {
     ticking = false;
@@ -287,64 +288,12 @@ if (pipeWrap && stops.length) {
   window.addEventListener('scroll', onPipeScroll, { passive: true });
   window.addEventListener('resize', onPipeScroll);
   dots.forEach((d, i) => d.addEventListener('click', () => {
+    if (!PINNED()) return setStop(i);
     const total = pipeWrap.offsetHeight - window.innerHeight;
     const p = (i + 0.5) / stops.length;
     window.scrollTo({ top: pipeWrap.offsetTop + p * total, behavior: RM ? 'auto' : 'smooth' });
   }));
   setStop(0);
-}
-
-// ---------- scene visibility for HUD ----------
-const hudScene = $('#hudScene');
-const sceneOf = { hero: 'core', pipeline: 'pipeline', surface: 'surface', terminal: 'console', gate: 'gate' };
-if (hudScene && 'IntersectionObserver' in window) {
-  const sIO = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) hudScene.textContent = sceneOf[e.target.id] || 'idle';
-    });
-  }, { threshold: 0.35 });
-  Object.keys(sceneOf).forEach((id) => { const el = document.getElementById(id); el && sIO.observe(el); });
-}
-
-// ---------- HUD fps ----------
-const hudFps = $('#hudFps');
-if (hudFps && !RM) {
-  let frames = 0;
-  let t0 = performance.now();
-  const tick = (now) => {
-    frames++;
-    if (now - t0 >= 500) {
-      hudFps.textContent = String(Math.round((frames * 1000) / (now - t0)));
-      frames = 0;
-      t0 = now;
-    }
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
-
-// ---------- custom cursor (fine pointers only) ----------
-if (FINE && !RM) {
-  const c = document.createElement('div');
-  c.setAttribute('aria-hidden', 'true');
-  Object.assign(c.style, {
-    position: 'fixed', left: '0', top: '0', width: '26px', height: '26px', marginLeft: '-13px', marginTop: '-13px',
-    border: '1px solid rgba(46,230,168,.7)', borderRadius: '50%', pointerEvents: 'none', zIndex: '400',
-    transition: 'width .15s, height .15s, margin .15s, background .15s', mixBlendMode: 'screen',
-  });
-  document.body.appendChild(c);
-  let hovering = false;
-  window.addEventListener('pointermove', (e) => {
-    c.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-    const t = e.target;
-    const over = !!(t.closest && t.closest('a, button, input, summary, .node-tag, .stop, canvas'));
-    if (over !== hovering) {
-      hovering = over;
-      c.style.width = c.style.height = over ? '44px' : '26px';
-      c.style.marginLeft = c.style.marginTop = over ? '-22px' : '-13px';
-      c.style.background = over ? 'rgba(46,230,168,.12)' : 'transparent';
-    }
-  }, { passive: true });
 }
 
 // ---------- terminal ----------
@@ -394,9 +343,9 @@ async function loadScenes() {
     }
   }
 
-  // scroll pipeline
+  // scroll pipeline — only on wide screens, where it is pinned; mobile shows a plain stack
   const pipeCanvas = $('#pipe3d');
-  if (pipeCanvas) {
+  if (pipeCanvas && PINNED()) {
     try {
       const m = await import('./pipe3d.js');
       pipeCtl = m.initPipe({ canvas: pipeCanvas });

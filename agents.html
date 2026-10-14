@@ -7,6 +7,19 @@
 <title>Agents · HYDRA</title>
 <meta name="description" content="The seven HYDRA agents: what each one does, why it is built that way, and the discipline it follows.">
 <meta name="theme-color" content="#03060a">
+<link rel="canonical" href="https://sricharanenabothula704-star.github.io/hydra-site-v2/agents.html">
+<meta property="og:url" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/agents.html">
+<meta property="og:site_name" content="HYDRA">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Agents · HYDRA">
+<meta property="og:description" content="The seven HYDRA agents: what each one does, why it is built that way, and the discipline it follows.">
+<meta property="og:image" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/og.png">
+<meta property="og:image:alt" content="HYDRA: 7 AI agents for scoped bug bounty work">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Agents · HYDRA">
+<meta name="twitter:description" content="The seven HYDRA agents: what each one does, why it is built that way, and the discipline it follows.">
+<meta name="twitter:image" content="https://sricharanenabothula704-star.github.io/hydra-site-v2/og.png">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "ItemList", "name": "HYDRA agents", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "HUNTER", "description": "What it does. Runs the full reconnaissance-to-exploitation pipeline: subdomain enumeration, CDN filtering so scans hit real origins, port discovery, vulnerability templates and directory fuzzing. Then it probes what it found in continuous cycles."}, {"@type": "ListItem", "position": 2, "name": "VERIFIER", "description": "What it does. Takes every finding and tries to destroy it: baseline request vs exploit request, three replays, response diffing and false-positive signature checks. Then an honest CVSS score and a confidence percentage."}, {"@type": "ListItem", "position": 3, "name": "REPORTER", "description": "What it does. Turns verified findings into platform-ready reports: a title under 120 characters, a summary that states severity plainly, working curl PoCs with truncated proof output, CWE mapping, a CVSS vector and impact in the business's own terms."}, {"@type": "ListItem", "position": 4, "name": "PLAN", "description": "What it does. Before anyone fires a packet, Plan researches the target on the open web: tech stack, program scope, known CVEs, acquisitions. Then it builds a prioritized attack plan."}, {"@type": "ListItem", "position": 5, "name": "AUDITOR", "description": "What it does. When you have source instead of a URL, Auditor reads it like an attacker. It maps trust boundaries first, sweeps dangerous sinks second, then goes deep on authorization logic, session handling, crypto misuse and mass assignment."}, {"@type": "ListItem", "position": 6, "name": "RECON", "description": "What it does. The fast path. Exhausts free passive sources (certificate transparency, archives, passive DNS) before touching the target. Resolves and deduplicates, tags CDN-shielded hosts, and harvests JS bundles and source-map leads."}, {"@type": "ListItem", "position": 7, "name": "DEBUG", "description": "What it does. Sees across all agents. When something breaks downstream (bad reports, weak verification, sloppy hunting), Debug diagnoses upstream."}]}]}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232ee6a8' stroke-width='2'><path d='M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-2-1-3-1-3s3 1 3 4a5 5 0 0 1-10 0c0-5 4-6 5-10z'/></svg>">
 <link rel="stylesheet" href="assets/style.css">
 <script type="importmap">
@@ -15,8 +28,9 @@
 <script type="module" src="assets/app.js"></script>
 </head>
 <body data-scene="agents">
+<a class="skip" href="#main">Skip to content</a>
 
-<nav class="nav" aria-label="Main">
+<header class="site-header"><nav class="nav" aria-label="Main">
   <div class="nav-in">
     <a class="logo" href="index.html"><span class="prompt">&gt;_</span> HYDRA</a>
     <div class="nav-links">
@@ -31,7 +45,7 @@
     </div>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Menu">menu</button>
   </div>
-</nav>
+</nav></header>
 
 <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
   <div class="palette-box">
@@ -40,10 +54,8 @@
   </div>
 </div>
 <canvas class="rain" id="rain" aria-hidden="true"></canvas>
-<div class="hud hud-fps" aria-hidden="true">fps <b id="hudFps">--</b></div>
-<div class="hud hud-scene" aria-hidden="true">scene: <b id="hudScene">agents</b></div>
 
-<main>
+<main id="main">
 
 <!-- 3D selector: same scene as the homepage core -->
 <section class="hero scene" id="hero" style="min-height:70vh;padding:40px 0 30px">
@@ -72,7 +84,7 @@
         <div class="role" style="font:13px var(--mono);color:var(--faint);margin-bottom:10px">the exploitation lead</div>
         <p><b>What it does.</b> Runs the full reconnaissance-to-exploitation pipeline: subdomain enumeration, CDN filtering so scans hit real origins, port discovery, vulnerability templates and directory fuzzing. Then it probes what it found in continuous cycles.</p>
         <p><b>Why.</b> Most hunters fail at asset discovery, not exploitation. So Hunter treats recon as 80% of the job and carries a decision table: a 403 means try a bypass, a WAF block means use the vendor table, silence after N cycles means change layers.</p>
-        <ul><li>Runs httpx, naabu, nuclei and ffuf pipelines (in scope only)</li><li>Saves every lead instantly with a hash</li><li>Refuses to proceed without confirmed scope</li><li>Stops at minimal proof on high-impact finds</li><li>Tags everything UNVERIFIED for the Verifier</li></ul>
+        <ul role="list"><li>Runs httpx, naabu, nuclei and ffuf pipelines (in scope only)</li><li>Saves every lead instantly with a hash</li><li>Refuses to proceed without confirmed scope</li><li>Stops at minimal proof on high-impact finds</li><li>Tags everything UNVERIFIED for the Verifier</li></ul>
       </article>
 
       <article class="card rv" style="--c:#ffaa00;border-left:3px solid var(--c)">
@@ -80,7 +92,7 @@
         <div class="role" style="font:13px var(--mono);color:var(--faint);margin-bottom:10px">the quality gate</div>
         <p><b>What it does.</b> Takes every finding and tries to destroy it: baseline request vs exploit request, three replays, response diffing and false-positive signature checks. Then an honest CVSS score and a confidence percentage.</p>
         <p><b>Why.</b> Bounty platforms track researcher accuracy. Three sloppy reports can end an account. The Verifier's charter: <i>if you can't reproduce it confidently, reject it.</i></p>
-        <ul><li>≥80% → VERIFIED, moves forward</li><li>50–79% → PARTIAL, flagged for human review</li><li>&lt;50% → REJECTED, with a written reason</li><li>Every rejection notes its false-positive signature</li><li>Dry spells raise standards, not lower them</li></ul>
+        <ul role="list"><li>≥80% → VERIFIED, moves forward</li><li>50–79% → PARTIAL, flagged for human review</li><li>&lt;50% → REJECTED, with a written reason</li><li>Every rejection notes its false-positive signature</li><li>Dry spells raise standards, not lower them</li></ul>
       </article>
 
       <article class="card rv" style="--c:#00aaff;border-left:3px solid var(--c)">
@@ -88,7 +100,7 @@
         <div class="role" style="font:13px var(--mono);color:var(--faint);margin-bottom:10px">the submission writer</div>
         <p><b>What it does.</b> Turns verified findings into platform-ready reports: a title under 120 characters, a summary that states severity plainly, working curl PoCs with truncated proof output, CWE mapping, a CVSS vector and impact in the business's own terms.</p>
         <p><b>Why.</b> A triager reads your report between meetings. The best report turns their job into a five-minute confirmation.</p>
-        <ul><li>Show, don't claim</li><li>Honest severities beat inflated ones</li><li>Report fast, but never skip verification for speed</li></ul>
+        <ul role="list"><li>Show, don't claim</li><li>Honest severities beat inflated ones</li><li>Report fast, but never skip verification for speed</li></ul>
       </article>
 
       <article class="card rv" style="--c:#00ff88;border-left:3px solid var(--c)">
